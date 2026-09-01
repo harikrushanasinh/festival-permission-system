@@ -1,13 +1,15 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import configuration from './config/configuration.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { UsersModule } from './modules/users/users.module.js';
 import { User } from './modules/users/user.entity.js';
+import { SnakeNamingStrategy } from './database/snake-naming.strategy.js';
 
 @Module({
   imports: [
@@ -24,14 +26,16 @@ import { User } from './modules/users/user.entity.js';
         password: config.get<string>('database.password'),
         database: config.get<string>('database.name'),
         entities: [User],
-        synchronize: config.get<string>('nodeEnv') !== 'production',
-        // synchronize is for local dev only — migrations (database/migrations) drive schema in prod.
+        namingStrategy: new SnakeNamingStrategy(),
+        synchronize: false,
+        // Schema is fully owned by database/migrations (run via `npm run migrate` in
+        // database/) — TypeORM here is query/entity layer only, never a schema source.
       }),
     }),
     AuthModule,
     UsersModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}
