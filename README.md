@@ -52,7 +52,14 @@ See the full 52-module spec in `docs/` for detailed requirements per module.
       and a real point-in-polygon jurisdiction lookup + nearest-station distance query
       both return correct results.
 - [ ] 03/RBAC. Roles & permissions (schema done in 02; service/guard wiring next)
-- [ ] 04. Super Admin masters (festivals, event types, police stations, areas)
+- [x] 04. Super Admin masters — Festivals, Event Types, Police Stations, Areas: full
+      CRUD APIs, SUPER_ADMIN-only mutations (RolesGuard), public reads. Police
+      stations auto-derive their PostGIS `location` from lat/lng via a DB trigger.
+      Areas accept a polygon boundary and expose a `/areas/lookup?lat=&lng=` point-
+      in-jurisdiction endpoint. Verified end-to-end against a live Postgres+PostGIS
+      instance over real HTTP: full CRUD, 401/403/404/409 error paths, the geography
+      trigger, nearest-station distance ranking, and the point-in-polygon lookup all
+      confirmed working through the actual API, not just service-layer logic.
 - [ ] 05. Organizer registration UI
 - [ ] 06. Application module (list/filters)
 - [ ] 07. Google Maps integration

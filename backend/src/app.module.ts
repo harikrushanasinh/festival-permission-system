@@ -10,6 +10,14 @@ import { AuthModule } from './modules/auth/auth.module.js';
 import { UsersModule } from './modules/users/users.module.js';
 import { User } from './modules/users/user.entity.js';
 import { SnakeNamingStrategy } from './database/snake-naming.strategy.js';
+import { FestivalsModule } from './modules/festivals/festivals.module.js';
+import { Festival } from './modules/festivals/festival.entity.js';
+import { EventTypesModule } from './modules/event-types/event-types.module.js';
+import { EventType } from './modules/event-types/event-type.entity.js';
+import { PoliceStationsModule } from './modules/police-stations/police-stations.module.js';
+import { PoliceStation } from './modules/police-stations/police-station.entity.js';
+import { AreasModule } from './modules/areas/areas.module.js';
+import { Area } from './modules/areas/area.entity.js';
 
 @Module({
   imports: [
@@ -25,7 +33,7 @@ import { SnakeNamingStrategy } from './database/snake-naming.strategy.js';
         username: config.get<string>('database.username'),
         password: config.get<string>('database.password'),
         database: config.get<string>('database.name'),
-        entities: [User],
+        entities: [User, Festival, EventType, PoliceStation, Area],
         namingStrategy: new SnakeNamingStrategy(),
         synchronize: false,
         // Schema is fully owned by database/migrations (run via `npm run migrate` in
@@ -34,6 +42,10 @@ import { SnakeNamingStrategy } from './database/snake-naming.strategy.js';
     }),
     AuthModule,
     UsersModule,
+    FestivalsModule,
+    EventTypesModule,
+    PoliceStationsModule,
+    AreasModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
