@@ -21,6 +21,7 @@ import { Area } from './modules/areas/area.entity.js';
 import { ApplicationsModule } from './modules/applications/applications.module.js';
 import { Application } from './modules/applications/application.entity.js';
 import { ApplicationStatusHistory } from './modules/applications/application-status-history.entity.js';
+import { RoutesModule } from './modules/routes/routes.module.js';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { ApplicationStatusHistory } from './modules/applications/application-sta
     PoliceStationsModule,
     AreasModule,
     ApplicationsModule,
+    RoutesModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

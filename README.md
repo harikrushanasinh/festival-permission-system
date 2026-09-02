@@ -68,8 +68,19 @@ See the full 52-module spec in `docs/` for detailed requirements per module.
       status history recorded at every transition, organizer data isolation (403
       cross-organizer), staff-role full visibility, edit/delete locked outside
       DRAFT/CHANGES_REQUESTED, and time-order validation (start < end).
-- [ ] 07. Google Maps integration
-- [ ] 08. Route builder + versioning
+- [x] 08. Route builder backend — routes/route_versions/route_points CRUD (B10),
+      ordered start->waypoints->destination points, PostGIS path calculation
+      (ST_MakeLine + ST_Length for real geography-based distance; duration is a
+      placeholder estimate pending Module 07's real Google Directions call).
+      Version history preserved on change (F10 - never edits an approved route
+      in place, always creates a new version and repoints
+      applications.active_route_id). Verified end-to-end against a live Postgres
+      over real HTTP: point ordering, real distance calculation (~4.88km on a
+      4-point test route), version 2 created without mutating version 1,
+      cross-organizer 403, and DTO validation on missing/invalid nested fields.
+- [ ] 07. Google Maps integration (frontend) — needs a real Google Maps API key
+      to test meaningfully; not yet started. `@googlemaps/js-api-loader` is
+      already in frontend/package.json from Module 01.
 - [ ] 09. PostGIS route analysis + police station recommendation
 - [ ] 10. Documents module
 - [ ] 11. Police review + multi-station approval
