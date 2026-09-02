@@ -22,6 +22,8 @@ import { ApplicationsModule } from './modules/applications/applications.module.j
 import { Application } from './modules/applications/application.entity.js';
 import { ApplicationStatusHistory } from './modules/applications/application-status-history.entity.js';
 import { RoutesModule } from './modules/routes/routes.module.js';
+import { DocumentsModule } from './modules/documents/documents.module.js';
+import { Document } from './modules/documents/document.entity.js';
 
 @Module({
   imports: [
@@ -37,7 +39,7 @@ import { RoutesModule } from './modules/routes/routes.module.js';
         username: config.get<string>('database.username'),
         password: config.get<string>('database.password'),
         database: config.get<string>('database.name'),
-        entities: [User, Festival, EventType, PoliceStation, Area, Application, ApplicationStatusHistory],
+        entities: [User, Festival, EventType, PoliceStation, Area, Application, ApplicationStatusHistory, Document],
         namingStrategy: new SnakeNamingStrategy(),
         synchronize: false,
         // Schema is fully owned by database/migrations (run via `npm run migrate` in
@@ -52,6 +54,7 @@ import { RoutesModule } from './modules/routes/routes.module.js';
     AreasModule,
     ApplicationsModule,
     RoutesModule,
+    DocumentsModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

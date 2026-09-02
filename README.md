@@ -94,7 +94,18 @@ See the full 52-module spec in `docs/` for detailed requirements per module.
       back to distance-ranked suggestions with none marked responsible;
       analyzing before calculating the route path is rejected with 400.
 - [ ] 09. PostGIS route analysis + police station recommendation
-- [ ] 10. Documents module
+- [x] 10/12. Documents — multipart upload with a pluggable storage-driver
+      abstraction (local disk implemented for dev; S3/R2 fail loudly at boot
+      instead of silently degrading to local storage). Mime-type allowlist
+      (pdf/jpeg/png), requirement-code validated against the event type's
+      document_requirements from Module 02's seeds, staff-only verification
+      with a rejection note. Verified end-to-end against a live Postgres +
+      local disk over real HTTP: byte-for-byte upload/download roundtrip,
+      invalid mime type / invalid requirement code / missing file all 400,
+      cross-organizer download blocked (403), non-staff verify blocked (403),
+      police officer verify + staff download bypass both confirmed, and delete
+      removes the file from disk (not just the DB row) with a 404 on
+      subsequent access.
 - [ ] 11. Police review + multi-station approval
 - [ ] 12. Permission + QR
 - [ ] 13. Public portal
