@@ -81,6 +81,18 @@ See the full 52-module spec in `docs/` for detailed requirements per module.
 - [ ] 07. Google Maps integration (frontend) — needs a real Google Maps API key
       to test meaningfully; not yet started. `@googlemaps/js-api-loader` is
       already in frontend/package.json from Module 01.
+- [x] 09/11. PostGIS route analysis + police station recommendation — analyzes
+      a calculated route's intersection with jurisdiction area polygons,
+      computes per-station coverage percentage, marks the highest-coverage
+      station(s) responsible, and falls back to plain nearest-station-by-
+      distance (unconfirmed) when a route crosses no defined jurisdiction at
+      all. Results persist to application_police_stations and the organizer can
+      confirm a suggested station. Verified end-to-end against a live
+      Postgres+PostGIS instance over real HTTP: a route crossing two adjacent
+      jurisdictions split almost exactly 50/50 in coverage, both correctly
+      flagged responsible; a route touching neither jurisdiction correctly fell
+      back to distance-ranked suggestions with none marked responsible;
+      analyzing before calculating the route path is rejected with 400.
 - [ ] 09. PostGIS route analysis + police station recommendation
 - [ ] 10. Documents module
 - [ ] 11. Police review + multi-station approval
