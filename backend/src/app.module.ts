@@ -18,6 +18,9 @@ import { PoliceStationsModule } from './modules/police-stations/police-stations.
 import { PoliceStation } from './modules/police-stations/police-station.entity.js';
 import { AreasModule } from './modules/areas/areas.module.js';
 import { Area } from './modules/areas/area.entity.js';
+import { ApplicationsModule } from './modules/applications/applications.module.js';
+import { Application } from './modules/applications/application.entity.js';
+import { ApplicationStatusHistory } from './modules/applications/application-status-history.entity.js';
 
 @Module({
   imports: [
@@ -33,7 +36,7 @@ import { Area } from './modules/areas/area.entity.js';
         username: config.get<string>('database.username'),
         password: config.get<string>('database.password'),
         database: config.get<string>('database.name'),
-        entities: [User, Festival, EventType, PoliceStation, Area],
+        entities: [User, Festival, EventType, PoliceStation, Area, Application, ApplicationStatusHistory],
         namingStrategy: new SnakeNamingStrategy(),
         synchronize: false,
         // Schema is fully owned by database/migrations (run via `npm run migrate` in
@@ -46,6 +49,7 @@ import { Area } from './modules/areas/area.entity.js';
     EventTypesModule,
     PoliceStationsModule,
     AreasModule,
+    ApplicationsModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

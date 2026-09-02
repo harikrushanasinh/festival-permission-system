@@ -61,7 +61,13 @@ See the full 52-module spec in `docs/` for detailed requirements per module.
       trigger, nearest-station distance ranking, and the point-in-polygon lookup all
       confirmed working through the actual API, not just service-layer logic.
 - [ ] 05. Organizer registration UI
-- [ ] 06. Application module (list/filters)
+- [x] 06. Application module — draft create/edit, submit, list with role-scoped
+      visibility + filters/pagination, application-number generation (e.g.
+      GANPATI-2026-00001). Verified end-to-end against a live Postgres over real
+      HTTP: full DRAFT -> SUBMITTED -> CHANGES_REQUESTED -> RESUBMITTED lifecycle,
+      status history recorded at every transition, organizer data isolation (403
+      cross-organizer), staff-role full visibility, edit/delete locked outside
+      DRAFT/CHANGES_REQUESTED, and time-order validation (start < end).
 - [ ] 07. Google Maps integration
 - [ ] 08. Route builder + versioning
 - [ ] 09. PostGIS route analysis + police station recommendation
