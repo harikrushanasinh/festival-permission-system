@@ -125,7 +125,24 @@ See the full 52-module spec in `docs/` for detailed requirements per module.
       other station still pending, missing-reason-on-reject correctly 400s,
       non-staff correctly 403s, and deciding for a station never confirmed for
       that application correctly 404s.
-- [ ] 12. Permission + QR
+- [x] 12/15. Permission + QR — automatically issues a permit the instant an
+      application's aggregate status reaches APPROVED (inside the same DB
+      transaction as the final approval, so a permit can never exist without
+      its approval being durably committed). Permission number derives from
+      the application number (PMT-{applicationNo}) rather than a second
+      race-prone sequence; QR token is a random 24-byte base64url string,
+      rendered server-side to an actual scannable PNG via the `qrcode`
+      package. GET /public/verify/:token is deliberately unauthenticated and
+      returns only what F24 says is public-safe (permit/application/festival/
+      event details, approving station names) - no organizer identity,
+      contact info, or internal officer IDs. Verified end-to-end against a
+      live Postgres over real HTTP through the full pipeline (stations, areas,
+      application, route, analysis, confirmation, submit, approval): permit
+      auto-issued on approval with the correct permission number and a real
+      400x400 PNG QR code, public verify worked with no auth header and
+      correctly excluded private fields, an invalid token 404'd, an
+      application with no permit yet 404'd distinctly, and a second organizer
+      was blocked (403) from fetching another organizer's permit.
 - [ ] 13. Public portal
 - [ ] 14. Redis + Socket.IO
 - [ ] 15. Live tracking + deviation/GPS-lost detection

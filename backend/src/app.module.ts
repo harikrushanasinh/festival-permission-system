@@ -25,6 +25,7 @@ import { RoutesModule } from './modules/routes/routes.module.js';
 import { DocumentsModule } from './modules/documents/documents.module.js';
 import { Document } from './modules/documents/document.entity.js';
 import { ApprovalsModule } from './modules/approvals/approvals.module.js';
+import { PermitsModule } from './modules/permits/permits.module.js';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { ApprovalsModule } from './modules/approvals/approvals.module.js';
     RoutesModule,
     DocumentsModule,
     ApprovalsModule,
+    PermitsModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

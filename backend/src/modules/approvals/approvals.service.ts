@@ -4,6 +4,7 @@ import { ApprovalDecision } from './approval-decision.enum.js';
 import { DecideApprovalDto } from './dto/decide-approval.dto.js';
 import { ApplicationStatus } from '../applications/application-status.enum.js';
 import { UserRole } from '../../common/enums/user-role.enum.js';
+import { PermitsService } from '../permits/permits.service.js';
 
 export interface RequestingUser {
   sub: string;
@@ -25,7 +26,7 @@ const STAFF_ROLES = [UserRole.SUPER_ADMIN, UserRole.POLICE_ADMIN, UserRole.POLIC
 
 @Injectable()
 export class ApprovalsService {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(private readonly dataSource: DataSource, private readonly permitsService: PermitsService) {}
 
   private async assertApplicationAccess(applicationId: string, user: RequestingUser): Promise<void> {
     if (STAFF_ROLES.includes(user.role)) return;
@@ -98,6 +99,14 @@ export class ApprovalsService {
            VALUES ($1, $2, $3, $4, $5)`,
           [applicationId, app.status, newStatus, dto.reason ?? null, user.sub],
         );
+
+        // B15/F20 - the permit is issued the moment the aggregate status
+        // actually reaches APPROVED, inside the same transaction so a permit
+        // never exists without its approval being durably committed (and
+        // vice versa - if permit issuance failed, the whole decision rolls back).
+        if (newStatus === ApplicationStatus.APPROVED) {
+          await this.permitsService.issueForApplication(applicationId, user.sub, manager);
+        }
       }
 
       const [row] = await manager.query(
