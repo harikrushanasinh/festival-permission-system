@@ -22,4 +22,9 @@ export default () => ({
     refreshExpiry: process.env.JWT_REFRESH_EXPIRY || '7d',
   },
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4200',
+  storage: {
+    driver: process.env.STORAGE_DRIVER || 'local',
+    localUploadsDir: process.env.LOCAL_UPLOADS_DIR || undefined, // defaults to ./uploads in the driver
+    maxFileSizeBytes: parseInt(process.env.MAX_FILE_SIZE_BYTES || '10485760', 10), // 10MB
+  },
 });
