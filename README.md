@@ -93,7 +93,6 @@ See the full 52-module spec in `docs/` for detailed requirements per module.
       flagged responsible; a route touching neither jurisdiction correctly fell
       back to distance-ranked suggestions with none marked responsible;
       analyzing before calculating the route path is rejected with 400.
-- [ ] 09. PostGIS route analysis + police station recommendation
 - [x] 10/12. Documents — multipart upload with a pluggable storage-driver
       abstraction (local disk implemented for dev; S3/R2 fail loudly at boot
       instead of silently degrading to local storage). Mime-type allowlist
@@ -106,7 +105,26 @@ See the full 52-module spec in `docs/` for detailed requirements per module.
       police officer verify + staff download bypass both confirmed, and delete
       removes the file from disk (not just the DB row) with a 404 on
       subsequent access.
-- [ ] 11. Police review + multi-station approval
+- [x] 13/14. Police review + multi-station approval — per-station APPROVED/
+      REJECTED/CHANGES_REQUESTED decisions (F17) with a required reason for
+      anything but APPROVED, and aggregate application-status computation
+      (F18/B14): any rejection wins outright, any changes-requested sends it
+      back to the organizer, all-approved closes it out, otherwise it sits
+      UNDER_REVIEW. Submit now requires an active route AND at least one
+      confirmed police station before it's allowed (two new guards on
+      ApplicationsService.submit()); a resubmission after CHANGES_REQUESTED
+      resets all prior per-station decisions to PENDING rather than leaving
+      stale approvals against a route that's since changed. Verified
+      end-to-end against a live Postgres over real HTTP with a genuine
+      two-station scenario: submit blocked with no route (400), blocked with
+      no confirmed station (400), approval rows correctly seeded as PENDING on
+      submit, one station approving moved the aggregate to UNDER_REVIEW (not
+      APPROVED), the second approval completed it to APPROVED with a full
+      DRAFT->SUBMITTED->UNDER_REVIEW->APPROVED history trail, a rejection on a
+      *different* application correctly overrode to REJECTED even with the
+      other station still pending, missing-reason-on-reject correctly 400s,
+      non-staff correctly 403s, and deciding for a station never confirmed for
+      that application correctly 404s.
 - [ ] 12. Permission + QR
 - [ ] 13. Public portal
 - [ ] 14. Redis + Socket.IO

@@ -127,6 +127,20 @@ export class ApplicationsService {
       : ApplicationStatus.SUBMITTED;
 
     return this.dataSource.transaction(async (manager) => {
+      if (!application.activeRouteId) {
+        throw new BadRequestException('This application has no route yet - build and calculate a route before submitting');
+      }
+      const confirmedStations: { policeStationId: string }[] = await manager.query(
+        `SELECT DISTINCT police_station_id AS "policeStationId" FROM application_police_stations
+         WHERE application_id = $1 AND route_version_id = $2 AND is_confirmed = true`,
+        [id, application.activeRouteId],
+      );
+      if (confirmedStations.length === 0) {
+        throw new BadRequestException(
+          'Confirm at least one suggested police station (POST .../police-station-suggestions/:stationId/confirm) before submitting',
+        );
+      }
+
       // Assign the application number once, on first submission. A
       // CHANGES_REQUESTED -> RESUBMITTED cycle is still the same application
       // and must keep it.
@@ -155,6 +169,23 @@ export class ApplicationsService {
       await manager.save(
         this.historyRepo.create({ applicationId: id, fromStatus, toStatus, changedBy: user.sub }),
       );
+
+      // A resubmission (route changed after CHANGES_REQUESTED) invalidates any
+      // prior per-station decisions - the route/stations they approved may no
+      // longer be current. Reset everything to PENDING rather than leaving
+      // stale APPROVED rows against a route that's since changed.
+      await manager.query('UPDATE application_approvals SET decision = $1, reason = NULL, decided_by = NULL, decided_at = NULL WHERE application_id = $2', [
+        'PENDING', id,
+      ]);
+      for (const station of confirmedStations) {
+        await manager.query(
+          `INSERT INTO application_approvals (application_id, police_station_id, decision)
+           VALUES ($1, $2, 'PENDING')
+           ON CONFLICT (application_id, police_station_id) DO NOTHING`,
+          [id, station.policeStationId],
+        );
+      }
+
       return saved;
     });
   }
