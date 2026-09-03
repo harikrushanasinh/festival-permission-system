@@ -143,7 +143,24 @@ See the full 52-module spec in `docs/` for detailed requirements per module.
       correctly excluded private fields, an invalid token 404'd, an
       application with no permit yet 404'd distinctly, and a second organizer
       was blocked (403) from fetching another organizer's permit.
-- [ ] 13. Public portal
+- [x] 13/16. Public portal — no-login browsing of processions (F23/F24).
+      Only APPROVED/LIVE/COMPLETED applications are ever visible; DRAFT/
+      SUBMITTED/UNDER_REVIEW/CHANGES_REQUESTED/REJECTED stay entirely private
+      even to a direct-by-id request (404, not just filtered out of listings).
+      Filters: festival, event type, police station, date, and timeframe
+      (upcoming/live/completed). Detail view returns route path/points as
+      GeoJSON for map rendering, confirmed station names, and the permission
+      number - but no organizer name, contact info, documents, or internal
+      approval remarks anywhere in the response, matching F24's exclusion
+      list. Verified end-to-end against a live Postgres over real HTTP: ran
+      one application through the full pipeline to APPROVED alongside a
+      second left at DRAFT, and confirmed the public list only ever showed
+      the approved one (draft correctly absent), the draft's detail endpoint
+      404'd on direct access, the approved detail endpoint worked with zero
+      auth headers and included real route geometry, and every filter
+      (festival/station/date/timeframe) returned the correct counts including
+      the negative cases (non-matching date -> 0, timeframe=live with nothing
+      live yet -> 0).
 - [ ] 14. Redis + Socket.IO
 - [ ] 15. Live tracking + deviation/GPS-lost detection
 - [ ] 16. Police control room
