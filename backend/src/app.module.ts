@@ -27,6 +27,8 @@ import { Document } from './modules/documents/document.entity.js';
 import { ApprovalsModule } from './modules/approvals/approvals.module.js';
 import { PermitsModule } from './modules/permits/permits.module.js';
 import { PublicModule } from './modules/public/public.module.js';
+import { RedisModule } from './modules/redis/redis.module.js';
+import { LiveTrackingModule } from './modules/live-tracking/live-tracking.module.js';
 
 @Module({
   imports: [
@@ -61,6 +63,8 @@ import { PublicModule } from './modules/public/public.module.js';
     ApprovalsModule,
     PermitsModule,
     PublicModule,
+    RedisModule,
+    LiveTrackingModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

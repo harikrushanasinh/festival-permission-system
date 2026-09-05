@@ -161,8 +161,34 @@ See the full 52-module spec in `docs/` for detailed requirements per module.
       (festival/station/date/timeframe) returned the correct counts including
       the negative cases (non-matching date -> 0, timeframe=live with nothing
       live yet -> 0).
-- [ ] 14. Redis + Socket.IO
-- [ ] 15. Live tracking + deviation/GPS-lost detection
+- [x] 17/18/19. Redis + Socket.IO + live tracking — installed and ran Redis 7
+      for real (not simulated) as an ephemeral "current position" cache
+      (`@Global()` REDIS_CLIENT provider); Postgres (`live_locations`) remains
+      the permanent history store per the spec's explicit rule. LiveTracking-
+      Service: start (requires APPROVED status + an active route)/complete a
+      procession, record GPS points with real PostGIS distance-to-route
+      calculation (ST_Distance against the approved route's geography path),
+      threshold-based deviation classification (NORMAL/WARNING/DEVIATION).
+      Socket.IO gateway with the four spec'd rooms (application:{id},
+      police-station:{id}, public-live, admin-live): optional JWT auth on
+      connection (anonymous viewers allowed for public-live, everything else
+      checked per-action), organizer location:update fans out to all relevant
+      rooms in one broadcast. A public GET /public/processions/:id/live
+      exposes only lat/lng/timestamp (F24: current location is public-safe,
+      deviation/speed stay police-internal). Verified with **real WebSocket
+      connections** via a socket.io-client test script (not mocked): an
+      anonymous client, a staff client, and an authenticated organizer client
+      all connected, joined rooms, and exchanged a live broadcast correctly
+      end-to-end; a point ~200m off-route correctly measured ~221m and was
+      classified DEVIATION while an on-route point measured ~0.03m and was
+      NORMAL; recording before start correctly 400'd; an unauthenticated
+      location:update and a non-staff join of a police-station room were both
+      confirmed genuinely rejected (verified via the DB row count, not just a
+      client-side timeout). Two real bugs found and fixed: the globally-
+      registered ThrottlerGuard (Module 02) crashed every WebSocket handler
+      by assuming an Express response object - fixed with @SkipThrottle() on
+      the gateway; and JwtService wasn't available outside AuthModule until
+      JwtModule was added to AuthModule's exports.
 - [ ] 16. Police control room
 - [ ] 17. Conflict detection
 - [ ] 18. Notifications

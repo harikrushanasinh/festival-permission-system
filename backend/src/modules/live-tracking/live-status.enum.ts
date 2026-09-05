@@ -1,0 +1,7 @@
+export enum LiveStatus {
+  NOT_STARTED = 'NOT_STARTED',
+  LIVE = 'LIVE',
+  GPS_WARNING = 'GPS_WARNING',
+  GPS_LOST = 'GPS_LOST',
+  COMPLETED = 'COMPLETED',
+}

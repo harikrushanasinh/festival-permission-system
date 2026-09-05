@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { QueryPublicProcessionsDto } from './dto/query-public-processions.dto.js';
+import { LiveTrackingService } from '../live-tracking/live-tracking.service.js';
 
 // Only these statuses are ever shown on the public portal (F23) - draft,
 // submitted, under-review, changes-requested, and rejected applications stay
@@ -9,7 +10,7 @@ const PUBLIC_STATUSES = ['APPROVED', 'LIVE', 'COMPLETED'];
 
 @Injectable()
 export class PublicService {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(private readonly dataSource: DataSource, private readonly liveTrackingService: LiveTrackingService) {}
 
   async listProcessions(query: QueryPublicProcessionsDto) {
     const page = query.page ?? 1;
@@ -102,5 +103,16 @@ export class PublicService {
     const [permit] = await this.dataSource.query('SELECT permission_number AS "permissionNumber" FROM permits WHERE application_id = $1', [id]);
 
     return { ...app, policeStations: stations.map((s) => s.name), routePoints: points, permissionNumber: permit?.permissionNumber ?? null };
+  }
+
+  /** F24 explicitly lists "Current Location" as public-safe - deviation status and speed/heading stay internal to police. */
+  async getLiveLocation(applicationId: string): Promise<{ latitude: number; longitude: number; recordedAt: string }> {
+    const [app] = await this.dataSource.query('SELECT status FROM applications WHERE id = $1', [applicationId]);
+    if (!app || app.status !== 'LIVE') {
+      throw new NotFoundException('This procession is not currently live');
+    }
+    const location = await this.liveTrackingService.getCurrentLocation(applicationId);
+    if (!location) throw new NotFoundException('No live location available yet');
+    return { latitude: location.latitude, longitude: location.longitude, recordedAt: location.recordedAt };
   }
 }

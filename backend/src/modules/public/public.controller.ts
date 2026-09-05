@@ -17,4 +17,9 @@ export class PublicController {
   getOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.publicService.getProcession(id);
   }
+
+  @Get(':id/live')
+  getLive(@Param('id', ParseUUIDPipe) id: string) {
+    return this.publicService.getLiveLocation(id);
+  }
 }
