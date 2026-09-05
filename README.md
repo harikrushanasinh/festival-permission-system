@@ -189,7 +189,23 @@ See the full 52-module spec in `docs/` for detailed requirements per module.
       by assuming an Express response object - fixed with @SkipThrottle() on
       the gateway; and JwtService wasn't available outside AuthModule until
       JwtModule was added to AuthModule's exports.
-- [ ] 16. Police control room
+- [x] 16/20. Police control room (F22) — staff-only aggregate view of every
+      currently-live procession, filterable by festival, event type, police
+      station, area (resolved to that area's owning station), status
+      (defaults to LIVE/GPS_WARNING/GPS_LOST - the "actually happening now"
+      set, excluding NOT_STARTED/COMPLETED unless explicitly requested), and
+      deviation status. Detail endpoint matches F22's click-marker spec
+      exactly: mandal, application number, current location, latest speed/
+      heading/accuracy, last update time, route geometry, and deviation
+      status/distance. Verified end-to-end against a live Postgres over real
+      HTTP, running one application all the way from application through
+      approval to an actual live GPS point: list correctly showed the live
+      procession with the right status/deviation/coordinates, detail view
+      returned every field the spec calls out including real route GeoJSON,
+      station/area/festival filters all returned the correct count (1),
+      negative filters (wrong deviation status, wrong lifecycle status) both
+      correctly returned 0, non-staff access correctly 403'd, and a
+      non-existent/non-live application correctly 404'd.
 - [ ] 17. Conflict detection
 - [ ] 18. Notifications
 - [ ] 19. Reports & audit logs
