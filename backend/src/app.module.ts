@@ -30,6 +30,7 @@ import { PublicModule } from './modules/public/public.module.js';
 import { RedisModule } from './modules/redis/redis.module.js';
 import { LiveTrackingModule } from './modules/live-tracking/live-tracking.module.js';
 import { ControlRoomModule } from './modules/control-room/control-room.module.js';
+import { NotificationsModule } from './modules/notifications/notifications.module.js';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { ControlRoomModule } from './modules/control-room/control-room.module.js
     RedisModule,
     LiveTrackingModule,
     ControlRoomModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

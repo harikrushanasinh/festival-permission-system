@@ -27,4 +27,12 @@ export default () => ({
     localUploadsDir: process.env.LOCAL_UPLOADS_DIR || undefined, // defaults to ./uploads in the driver
     maxFileSizeBytes: parseInt(process.env.MAX_FILE_SIZE_BYTES || '10485760', 10), // 10MB
   },
+  liveTracking: {
+    // B20 - "make threshold configurable, do not hardcode it permanently."
+    deviationWarningMeters: parseInt(process.env.DEVIATION_WARNING_METERS || '50', 10),
+    deviationAlertMeters: parseInt(process.env.DEVIATION_ALERT_METERS || '100', 10),
+    // B21 - how long without a GPS update before a live procession is flagged.
+    gpsWarningSeconds: parseInt(process.env.GPS_WARNING_SECONDS || '120', 10),
+    gpsLostSeconds: parseInt(process.env.GPS_LOST_SECONDS || '300', 10),
+  },
 });

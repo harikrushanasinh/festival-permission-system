@@ -206,8 +206,49 @@ See the full 52-module spec in `docs/` for detailed requirements per module.
       negative filters (wrong deviation status, wrong lifecycle status) both
       correctly returned 0, non-staff access correctly 403'd, and a
       non-existent/non-live application correctly 404'd.
+- [x] 21/22. Route deviation alerts + GPS Lost detection — thresholds
+      (deviation warning/alert meters, GPS warning/lost seconds) moved to
+      config (spec explicitly requires this, not hardcoded). Deviation alerts
+      fire once on entering DEVIATION and once on returning to NORMAL - not on
+      every ping while it stays deviated. GPS health is tracked as its own
+      live_processions.status dimension (LIVE/GPS_WARNING/GPS_LOST), separate
+      from deviation_status - a first `@nestjs/schedule` background job
+      (GpsWatchdogService, polling every 10s) flags staleness; recovery back
+      to LIVE happens the instant a fresh point arrives via
+      LiveTrackingService, not the watchdog. Alerts write to a minimal
+      Notifications slice (in-app only; full multi-channel delivery is
+      Module 24) with a sensible recipient fallback (assigned officers for
+      the confirmed station, or all POLICE_ADMINs if none assigned yet).
+      Verified end-to-end against a live Postgres, with fast test thresholds
+      (5s/10s) so real transitions could be observed directly rather than
+      waited out: LIVE -> GPS_WARNING -> GPS_LOST fired exactly one
+      notification each, a fresh point correctly triggered GPS_RECOVERED and
+      flipped status back to LIVE, an off-route point fired exactly one
+      ROUTE_DEVIATION (not one per subsequent ping) and returning on-route
+      fired exactly one ROUTE_DEVIATION_RESOLVED, and the notifications
+      read/mark-read API correctly scoped to the requesting user (404, not a
+      silent no-op, when marking another user's notification or a
+      nonexistent one).
+    
+      **Real bug found and fixed via this live testing**: TypeORM's
+      `DataSource.query()` returns a `[rows, affectedCount]` tuple for
+      `UPDATE ... RETURNING` statements specifically - unlike `SELECT` or
+      `INSERT ... RETURNING`, which return a plain rows array. This is the
+      first `UPDATE ... RETURNING` anywhere in the codebase, so the bug never
+      surfaced before: the watchdog was iterating over the 2-element tuple as
+      if each element were a row, calling `alert(undefined, ...)` twice per
+      query and writing notifications with a NULL `related_application_id`.
+      Caught by noticing duplicate/null-application alerts in a controlled
+      test, root-caused by comparing compiled output against source, and
+      confirmed fixed by destructuring `const [rows] = await query(...)`
+      instead. Also fixed a related honesty gap in the notifications
+      mark-read endpoint, found during the same testing pass: it always
+      returned `{success:true}` even when the target notification belonged to
+      someone else (silently a no-op due to correct SQL scoping, but a
+      misleading response) - now correctly 404s.
 - [ ] 17. Conflict detection
-- [ ] 18. Notifications
+- [ ] 18. Notifications - full multi-channel delivery (push/email/SMS); the
+      in-app record/read/mark-read slice this module needed already exists
 - [ ] 19. Reports & audit logs
 - [ ] 20. Security hardening, testing, deployment
 

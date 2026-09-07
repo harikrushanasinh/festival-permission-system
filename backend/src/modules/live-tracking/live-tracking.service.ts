@@ -1,10 +1,12 @@
 import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 import type { Redis } from 'ioredis';
 import { REDIS_CLIENT } from '../redis/redis.constants.js';
 import { RecordLocationDto } from './dto/record-location.dto.js';
 import { LiveStatus } from './live-status.enum.js';
 import { UserRole } from '../../common/enums/user-role.enum.js';
+import { NotificationsService } from '../notifications/notifications.service.js';
 
 export interface RequestingUser {
   sub: string;
@@ -28,7 +30,32 @@ const redisKey = (applicationId: string) => `live:${applicationId}`;
 
 @Injectable()
 export class LiveTrackingService {
-  constructor(private readonly dataSource: DataSource, @Inject(REDIS_CLIENT) private readonly redis: Redis) {}
+  constructor(
+    private readonly dataSource: DataSource,
+    @Inject(REDIS_CLIENT) private readonly redis: Redis,
+    private readonly config: ConfigService,
+    private readonly notifications: NotificationsService,
+  ) {}
+
+  /**
+   * Officers assigned to any of the application's confirmed stations. Falls
+   * back to every POLICE_ADMIN if no officer is assigned to those stations
+   * yet (officer assignment is its own unbuilt admin flow) - an alert should
+   * never simply vanish because nobody's been rostered to a station.
+   */
+  private async findAlertRecipients(applicationId: string): Promise<string[]> {
+    const assigned: { userId: string }[] = await this.dataSource.query(
+      `SELECT DISTINCT po.user_id AS "userId"
+       FROM application_police_stations aps
+       JOIN police_officers po ON po.police_station_id = aps.police_station_id
+       WHERE aps.application_id = $1 AND aps.is_confirmed = true`,
+      [applicationId],
+    );
+    if (assigned.length > 0) return assigned.map((r) => r.userId);
+
+    const admins: { id: string }[] = await this.dataSource.query("SELECT id FROM users WHERE role = 'POLICE_ADMIN' AND status = 'ACTIVE'");
+    return admins.map((r) => r.id);
+  }
 
   private async assertOwner(applicationId: string, user: RequestingUser): Promise<void> {
     const [app] = await this.dataSource.query('SELECT organizer_id AS "organizerId" FROM applications WHERE id = $1', [applicationId]);
@@ -115,12 +142,12 @@ export class LiveTrackingService {
     await this.assertOwner(applicationId, user);
 
     const [live] = await this.dataSource.query(
-      `SELECT lp.id, lp.status, a.active_route_id AS "activeRouteId"
+      `SELECT lp.id, lp.status, lp.deviation_status AS "deviationStatus", a.active_route_id AS "activeRouteId"
        FROM live_processions lp JOIN applications a ON a.id = lp.application_id
        WHERE lp.application_id = $1`,
       [applicationId],
     );
-    if (!live || live.status !== LiveStatus.LIVE) {
+    if (!live || (live.status !== LiveStatus.LIVE && live.status !== LiveStatus.GPS_WARNING && live.status !== LiveStatus.GPS_LOST)) {
       throw new BadRequestException('This procession is not currently live - call start first');
     }
 
@@ -134,10 +161,12 @@ export class LiveTrackingService {
       [dto.longitude, dto.latitude, live.activeRouteId],
     );
 
-    // Thresholds match the spec's example bands; configurable later rather
-    // than hardcoded permanently (B20 will own this properly).
     const distance = Number(distanceFromRouteM);
-    const deviationStatus: LocationBroadcast['deviationStatus'] = distance > 100 ? 'DEVIATION' : distance > 50 ? 'WARNING' : 'NORMAL';
+    const warningM = this.config.get<number>('liveTracking.deviationWarningMeters')!;
+    const alertM = this.config.get<number>('liveTracking.deviationAlertMeters')!;
+    const deviationStatus: LocationBroadcast['deviationStatus'] = distance > alertM ? 'DEVIATION' : distance > warningM ? 'WARNING' : 'NORMAL';
+    const previousDeviationStatus = live.deviationStatus as LocationBroadcast['deviationStatus'];
+    const wasGpsUnhealthy = live.status === LiveStatus.GPS_WARNING || live.status === LiveStatus.GPS_LOST;
 
     await this.dataSource.query(
       `INSERT INTO live_locations (live_procession_id, latitude, longitude, location, speed, heading, accuracy, distance_from_route_m, recorded_at)
@@ -145,13 +174,44 @@ export class LiveTrackingService {
       [live.id, dto.latitude, dto.longitude, dto.longitude, dto.latitude, dto.speed ?? null, dto.heading ?? null, dto.accuracy ?? null, distance, recordedAt],
     );
 
+    // A fresh GPS point always means the connection has recovered, regardless
+    // of what triggered GPS_WARNING/GPS_LOST (Module 22's watchdog sets those).
     await this.dataSource.query(
       `UPDATE live_processions
        SET last_latitude = $1, last_longitude = $2, last_location = ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography,
-           last_update_at = now(), deviation_status = $3
-       WHERE id = $4`,
-      [dto.latitude, dto.longitude, deviationStatus, live.id],
+           last_update_at = now(), deviation_status = $3, status = $4
+       WHERE id = $5`,
+      [dto.latitude, dto.longitude, deviationStatus, LiveStatus.LIVE, live.id],
     );
+
+    if (wasGpsUnhealthy) {
+      const recipients = await this.findAlertRecipients(applicationId);
+      await this.notifications.createForUsers(recipients, {
+        eventCode: 'GPS_RECOVERED',
+        title: 'GPS signal recovered',
+        body: `Procession ${applicationId} is reporting its location again.`,
+        relatedApplicationId: applicationId,
+      });
+    }
+
+    // Alert on entering DEVIATION, and again on leaving it - not on every
+    // single ping while it stays deviated, which would spam recipients.
+    if (deviationStatus === 'DEVIATION' && previousDeviationStatus !== 'DEVIATION') {
+      const recipients = await this.findAlertRecipients(applicationId);
+      await this.notifications.createForUsers(recipients, {
+        eventCode: 'ROUTE_DEVIATION',
+        title: 'Route deviation detected',
+        body: `Procession is ${Math.round(distance)}m from its approved route.`,
+        relatedApplicationId: applicationId,
+      });
+    } else if (deviationStatus !== 'DEVIATION' && previousDeviationStatus === 'DEVIATION') {
+      const recipients = await this.findAlertRecipients(applicationId);
+      await this.notifications.createForUsers(recipients, {
+        eventCode: 'ROUTE_DEVIATION_RESOLVED',
+        title: 'Procession back on approved route',
+        relatedApplicationId: applicationId,
+      });
+    }
 
     const broadcast: LocationBroadcast = {
       applicationId, latitude: dto.latitude, longitude: dto.longitude,
