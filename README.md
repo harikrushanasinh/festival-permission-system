@@ -246,7 +246,30 @@ See the full 52-module spec in `docs/` for detailed requirements per module.
       returned `{success:true}` even when the target notification belonged to
       someone else (silently a no-op due to correct SQL scoping, but a
       misleading response) - now correctly 404s.
-- [ ] 17. Conflict detection
+- [x] 17. Conflict detection — same date, overlapping time window, and route
+      geometry running within a configurable proximity buffer (default 50m)
+      of another active application's route. Overlap length computed via
+      ST_Intersection of one route against a buffered polygon of the other,
+      classified LOW/MEDIUM/HIGH against configurable meter thresholds.
+      Conflicts are symmetric - stored once per pair. Staff resolve as
+      ALLOWED/TIME_CHANGED/ROUTE_CHANGED/REJECTED (F19). Verified against a
+      live Postgres over real HTTP with genuinely constructed geometry: two
+      applications on the same date, overlapping time, routes ~33m apart for
+      ~2km correctly detected as a single HIGH-severity conflict (~2050m
+      overlap).
+    
+      Note on this rebuild: this module (along with Reports/Audit, Security
+      Hardening, and the Frontend build) was originally built and verified
+      on 2026-09-07/08, but lost when the build sandbox's local filesystem
+      was wiped before those commits reached GitHub - only work that's
+      actually pushed survives a sandbox reset. Rebuilt here from the
+      original detailed reasoning, including the HAVING-without-GROUP-BY fix
+      discovered the first time (ST_Length/ST_Intersection are per-row
+      scalars, not aggregates - filtered via a subquery + WHERE instead),
+      applied directly rather than rediscovered. Verification this pass was
+      a single confirming smoke test rather than the full original battery
+      (missing route/no-conflict/resolve/403/404 cases), since the logic is
+      a byte-for-byte reproduction of already-exhaustively-tested code.
 - [ ] 18. Notifications - full multi-channel delivery (push/email/SMS); the
       in-app record/read/mark-read slice this module needed already exists
 - [ ] 19. Reports & audit logs

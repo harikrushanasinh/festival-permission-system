@@ -35,4 +35,13 @@ export default () => ({
     gpsWarningSeconds: parseInt(process.env.GPS_WARNING_SECONDS || '120', 10),
     gpsLostSeconds: parseInt(process.env.GPS_LOST_SECONDS || '300', 10),
   },
+  conflicts: {
+    // B16 - how close two routes must run (meters) to count as spatially
+    // conflicting at all, and the overlap-length bands that separate
+    // LOW/MEDIUM/HIGH severity. Configurable per the same "don't hardcode
+    // thresholds permanently" principle used for deviation/GPS elsewhere.
+    proximityBufferMeters: parseInt(process.env.CONFLICT_PROXIMITY_BUFFER_METERS || '50', 10),
+    highSeverityOverlapMeters: parseInt(process.env.CONFLICT_HIGH_OVERLAP_METERS || '1000', 10),
+    mediumSeverityOverlapMeters: parseInt(process.env.CONFLICT_MEDIUM_OVERLAP_METERS || '200', 10),
+  },
 });
