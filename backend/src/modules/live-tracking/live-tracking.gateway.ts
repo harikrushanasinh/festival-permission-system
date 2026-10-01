@@ -26,7 +26,7 @@ const STAFF_ROLES = [UserRole.SUPER_ADMIN, UserRole.POLICE_ADMIN, UserRole.POLIC
 // Socket.IO doesn't need HTTP-style rate limiting the same way; per-message
 // throttling would need a WS-specific guard, not this one.
 @SkipThrottle()
-@WebSocketGateway({ cors: { origin: '*' } })
+@WebSocketGateway({ cors: { origin: process.env.FRONTEND_URL || 'http://localhost:4200', credentials: true } })
 export class LiveTrackingGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server!: Server;
   private readonly logger = new Logger(LiveTrackingGateway.name);

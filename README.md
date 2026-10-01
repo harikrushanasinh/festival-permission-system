@@ -303,7 +303,39 @@ See the full 52-module spec in `docs/` for detailed requirements per module.
       with 0 applications still appears with `count: 0` rather than being dropped; confirmed
       the CSV export's header/row shape; confirmed an ORGANIZER gets 403 from both
       `/reports/*` and `/audit-logs`. Test users/application/audit rows deleted afterward.
-- [ ] 20. Security hardening, testing, deployment
+- [x] 20. Security hardening (testing/deployment remain open - see below):
+      - **Helmet** on every response (CSP, HSTS, X-Frame-Options, X-Content-Type-Options,
+        etc. - confirmed present on a live response, not just configured).
+      - **Production JWT-secret guard**: bootstrap refuses to start when `NODE_ENV=production`
+        and either `JWT_ACCESS_SECRET` or `JWT_REFRESH_SECRET` is still the config layer's
+        dev fallback - confirmed it throws and exits with the defaults, and boots and serves
+        normally once real secrets are supplied.
+      - **`dotenv/config` as the literal first import** in `main.ts`, ahead of `AppModule`.
+        `@WebSocketGateway`'s decorator options (the live-tracking gateway's CORS origin)
+        are evaluated at class-definition time, when the module graph is first imported -
+        before `ConfigModule.forRoot()` would otherwise have loaded `.env`. Without this,
+        `FRONTEND_URL` reads `undefined` at decorator-evaluation time no matter what's in
+        the file.
+      - **Live-tracking gateway CORS** narrowed from `origin: '*'` to the configured
+        frontend origin (with credentials), matching the HTTP CORS policy instead of
+        leaving the WebSocket transport wide open.
+      - **`multer` vulnerability (GHSA-wc9g-mqfw-jrwm` and four related DoS/bypass
+        advisories, all fixed in 2.4.0)**: bumped the direct dependency to `2.4.0` and added
+        an npm `overrides` entry so `@nestjs/platform-express`'s own nested copy resolves to
+        the patched version too - confirmed via `npm ls multer` that only one, patched copy
+        exists in `node_modules` afterward, and `npm audit` no longer reports it.
+      - Removed the unused `@nestjs/mau` devDependency (deployment CLI add-on that was never
+        used and was the only other thing `npm audit` was flagging).
+      - Remaining `npm audit` findings (`brace-expansion`, `fast-uri`) are transitive dev-only
+        dependencies of `@nestjs/cli` - not shipped to production, not applied to breaking
+        major-version bumps here.
+
+      Verified against a live server: `curl -I` showed the Helmet header set and the CORS
+      policy scoped to `http://localhost:4200`; booting with `NODE_ENV=production` and the
+      default JWT secrets threw and exited as designed; booting with real secrets (on a
+      second port) served a 200 normally. Testing (an actual automated test suite) and
+      production deployment (Docker Compose verification - Docker itself isn't available in
+      this sandbox) remain open, tracked separately rather than marked done here.
 
 ## Database migrations
 
