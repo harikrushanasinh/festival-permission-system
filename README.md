@@ -272,7 +272,37 @@ See the full 52-module spec in `docs/` for detailed requirements per module.
       a byte-for-byte reproduction of already-exhaustively-tested code.
 - [ ] 18. Notifications - full multi-channel delivery (push/email/SMS); the
       in-app record/read/mark-read slice this module needed already exists
-- [ ] 19. Reports & audit logs
+- [x] 19. Reports & audit logs — two modules landed together:
+      - **Audit logs (B24)**: a global `AuditLogInterceptor` (registered via `APP_INTERCEPTOR`)
+        logs every authenticated mutating request (POST/PATCH/PUT/DELETE) without each
+        controller having to report what it touched. `entityType`/`entityId`/`action` are
+        derived from the request path alone (e.g. `PATCH /applications/<uuid>/approve` ->
+        entity `applications`, action `APPLICATIONS.APPROVE`; plain CRUD with no sub-action
+        segment falls back to a verb map, e.g. `POST /festivals` -> `FESTIVALS.CREATE`).
+        Sensitive fields (`password`, `newPassword`, `confirmPassword`, `token`,
+        `refreshToken`, `accessToken`) are redacted from the logged body before it's
+        written. A write failure is swallowed, never surfaced to the client - logging must
+        not break the request it's observing. `GET /audit-logs` (list, filterable by
+        entityType/entityId/userId/action/date range) and `GET /audit-logs/:id` are
+        restricted to SUPER_ADMIN/POLICE_ADMIN.
+      - **Reports (B23)**: `GET /reports/summary|by-festival|by-event-type|by-area|
+        by-police-station|conflicts|deviations`, all scoped by an optional
+        from/to/festivalId/eventTypeId filter, restricted to staff roles (SUPER_ADMIN/
+        POLICE_ADMIN/POLICE_OFFICER). Festival/event-type/area/police-station breakdowns
+        use a LEFT JOIN with the scope filter folded into the `ON` clause (not `WHERE`) so
+        a festival or station with zero matching applications still reports a 0 count
+        instead of silently dropping out of a LEFT JOIN. `GET /reports/applications.csv`
+        exports the same scope as a CSV via a small hand-rolled RFC 4180 writer - no xlsx/
+        pdf export (documented as a gap, not faked); CSV opens in Excel and every
+        spreadsheet tool without pulling in a binary-format library.
+
+      Verified against a live Postgres/PostGIS/Redis + real HTTP: registered an organizer,
+      logged in, created an application, confirmed the resulting audit-log row has the
+      right action/entity/IP and an unredacted-but-non-sensitive body; logged in as a
+      SUPER_ADMIN and confirmed every report endpoint, including that a festival/event-type
+      with 0 applications still appears with `count: 0` rather than being dropped; confirmed
+      the CSV export's header/row shape; confirmed an ORGANIZER gets 403 from both
+      `/reports/*` and `/audit-logs`. Test users/application/audit rows deleted afterward.
 - [ ] 20. Security hardening, testing, deployment
 
 ## Database migrations

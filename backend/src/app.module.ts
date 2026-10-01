@@ -32,6 +32,8 @@ import { LiveTrackingModule } from './modules/live-tracking/live-tracking.module
 import { ControlRoomModule } from './modules/control-room/control-room.module.js';
 import { ConflictsModule } from './modules/conflicts/conflicts.module.js';
 import { NotificationsModule } from './modules/notifications/notifications.module.js';
+import { AuditModule } from './modules/audit/audit.module.js';
+import { ReportsModule } from './modules/reports/reports.module.js';
 
 @Module({
   imports: [
@@ -71,6 +73,8 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     ControlRoomModule,
     NotificationsModule,
     ConflictsModule,
+    AuditModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
