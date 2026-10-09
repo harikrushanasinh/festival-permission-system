@@ -7,5 +7,9 @@ export interface User {
   mobile: string;
   role: UserRole;
   status: 'ACTIVE' | 'INACTIVE' | 'PENDING';
+  address?: string | null;
+  city?: string | null;
+  area?: string | null;
+  organizationName?: string | null;
   createdAt: string;
 }

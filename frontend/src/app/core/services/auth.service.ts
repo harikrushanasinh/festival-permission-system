@@ -4,9 +4,8 @@ import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { API_ENDPOINTS } from '../constants/api-endpoints.constant';
 import { STORAGE_KEYS } from '../constants/storage-keys.constant';
-import { AuthResponse, LoginRequest, RegisterRequest } from '../models/auth.model';
+import { AuthResponse, LoginRequest, RegisterRequest, RegisterResponse } from '../models/auth.model';
 import { User } from '../models/user.model';
-import { ApiResponse } from '../models/api-response.model';
 import { TokenService } from './token.service';
 
 @Injectable({ providedIn: 'root' })
@@ -15,21 +14,21 @@ export class AuthService {
 
   constructor(private http: HttpClient, private tokenService: TokenService) {}
 
-  login(payload: LoginRequest): Observable<ApiResponse<AuthResponse>> {
+  login(payload: LoginRequest): Observable<AuthResponse> {
     return this.http
-      .post<ApiResponse<AuthResponse>>(`${environment.apiUrl}${API_ENDPOINTS.AUTH.LOGIN}`, payload)
-      .pipe(tap((res) => this.persistSession(res.data)));
+      .post<AuthResponse>(`${environment.apiUrl}${API_ENDPOINTS.AUTH.LOGIN}`, payload)
+      .pipe(tap((res) => this.persistSession(res)));
   }
 
-  register(payload: RegisterRequest): Observable<ApiResponse<AuthResponse>> {
-    return this.http.post<ApiResponse<AuthResponse>>(`${environment.apiUrl}${API_ENDPOINTS.AUTH.REGISTER}`, payload);
+  register(payload: RegisterRequest): Observable<RegisterResponse> {
+    return this.http.post<RegisterResponse>(`${environment.apiUrl}${API_ENDPOINTS.AUTH.REGISTER}`, payload);
   }
 
-  refresh(): Observable<ApiResponse<AuthResponse>> {
+  refresh(): Observable<AuthResponse> {
     const refreshToken = this.tokenService.getRefreshToken();
     return this.http
-      .post<ApiResponse<AuthResponse>>(`${environment.apiUrl}${API_ENDPOINTS.AUTH.REFRESH}`, { refreshToken })
-      .pipe(tap((res) => this.persistSession(res.data)));
+      .post<AuthResponse>(`${environment.apiUrl}${API_ENDPOINTS.AUTH.REFRESH}`, { refreshToken })
+      .pipe(tap((res) => this.persistSession(res)));
   }
 
   logout(): void {

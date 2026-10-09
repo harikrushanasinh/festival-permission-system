@@ -12,7 +12,22 @@ export const routes: Routes = [
     path: 'organizer',
     canActivate: [authGuard, roleGuard],
     data: { roles: [UserRole.ORGANIZER] },
-    loadChildren: () => import('./features/dashboard/dashboard.routes').then((m) => m.DASHBOARD_ROUTES),
+    loadComponent: () => import('./features/shell/app-shell.component').then((m) => m.AppShellComponent),
+    children: [
+      { path: '', loadComponent: () => import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent) },
+      {
+        path: 'applications',
+        loadComponent: () => import('./features/applications/list/application-list.component').then((m) => m.ApplicationListComponent),
+      },
+      {
+        path: 'applications/new',
+        loadComponent: () => import('./features/applications/form/application-form.component').then((m) => m.ApplicationFormComponent),
+      },
+      {
+        path: 'applications/:id',
+        loadComponent: () => import('./features/applications/form/application-form.component').then((m) => m.ApplicationFormComponent),
+      },
+    ],
   },
   { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
   { path: '**', redirectTo: 'auth/login' },

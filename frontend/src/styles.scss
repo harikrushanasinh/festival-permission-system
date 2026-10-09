@@ -1,2 +1,531 @@
+// ---------------------------------------------------------------------------
+// Design tokens
+//
+// This is a permit register, not a SaaS dashboard: organizers file an
+// application the way they'd file paperwork at a government office, and
+// police review it the way a station reviews a stack of permit requests.
+// The visual language borrows from a ledger/register - rule dividers,
+// numbered entries, left-border status accents - rather than rounded cards
+// and soft shadows. Marigold is the one accent (the flower used at these
+// festivals), spent sparingly; indigo carries the system's authority.
+// ---------------------------------------------------------------------------
+
+:root {
+  --color-indigo-900: #141f38;
+  --color-indigo: #1b2a4a;
+  --color-indigo-700: #28385c;
+  --color-marigold: #e8a33d;
+  --color-marigold-dark: #c17f1f;
+  --color-paper: #faf8f3;
+  --color-paper-raised: #f3efe4;
+  --color-charcoal: #22252b;
+  --color-charcoal-soft: #5a5d63;
+  --color-rule: #ddd6c4;
+  --color-rule-strong: #c7bd9f;
+
+  --color-approved: #3f7350;
+  --color-approved-bg: #ebf3ec;
+  --color-pending: #c77d22;
+  --color-pending-bg: #faf1e2;
+  --color-rejected: #b4453b;
+  --color-rejected-bg: #faecea;
+  --color-live: #1b6ca8;
+  --color-live-bg: #e9f2f9;
+  --color-neutral: #6b6f76;
+  --color-neutral-bg: #eeede8;
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-8: 3rem;
+  --space-10: 4rem;
+
+  --radius: 3px;
+  --max-content-width: 1180px;
+}
+
+* { box-sizing: border-box; }
+
 html, body { height: 100%; margin: 0; }
-body { font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--color-paper);
+  color: var(--color-charcoal);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--color-indigo);
+  margin: 0 0 var(--space-2);
+  letter-spacing: -0.01em;
+}
+
+h1 { font-size: 2rem; font-weight: 500; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.125rem; }
+
+p { margin: 0 0 var(--space-3); }
+
+a { color: var(--color-indigo); }
+
+::selection { background: var(--color-marigold); color: var(--color-indigo-900); }
+
+:focus-visible {
+  outline: 2px solid var(--color-marigold-dark);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+// ---------------------------------------------------------------------------
+// Layout shells
+// ---------------------------------------------------------------------------
+
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+
+  @media (min-width: 900px) {
+    grid-template-columns: 1.05fr 0.95fr;
+  }
+}
+
+.auth-shell__brand {
+  display: none;
+  background: var(--color-indigo);
+  color: #fff;
+  padding: var(--space-10) var(--space-8);
+  position: relative;
+  overflow: hidden;
+
+  @media (min-width: 900px) {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+}
+
+.auth-shell__brand::after {
+  content: '';
+  position: absolute;
+  right: -60px;
+  bottom: -60px;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(232, 163, 61, 0.22), transparent 70%);
+}
+
+.auth-shell__mark {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.auth-shell__tagline {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 500;
+  line-height: 1.3;
+  max-width: 24ch;
+  position: relative;
+  z-index: 1;
+}
+
+.auth-shell__foot {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.65);
+  position: relative;
+  z-index: 1;
+}
+
+.auth-shell__form {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6) var(--space-5);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-card--wide { max-width: 560px; }
+
+.auth-card__eyebrow {
+  font-size: 0.8rem;
+  color: var(--color-charcoal-soft);
+  margin-bottom: var(--space-1);
+}
+
+.auth-card__title { margin-bottom: var(--space-5); }
+
+.auth-card__foot {
+  margin-top: var(--space-5);
+  font-size: 0.9rem;
+  color: var(--color-charcoal-soft);
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr;
+
+  @media (min-width: 880px) {
+    grid-template-columns: 230px 1fr;
+  }
+}
+
+.app-shell__sidebar {
+  background: var(--color-indigo);
+  color: #fff;
+  padding: var(--space-5) var(--space-4);
+  display: none;
+
+  @media (min-width: 880px) {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.app-shell__mark {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: var(--space-6);
+}
+
+.app-nav { display: flex; flex-direction: column; gap: var(--space-1); flex: 1; }
+
+.app-nav a {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-size: 0.92rem;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  border-left: 2px solid transparent;
+}
+
+.app-nav a:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+.app-nav a.active {
+  background: rgba(255, 255, 255, 0.1);
+  border-left-color: var(--color-marigold);
+  color: #fff;
+}
+
+.app-shell__user {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.55);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding-top: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.app-shell__user strong { display: block; color: #fff; font-weight: 500; }
+
+.app-shell__logout {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: var(--space-2) 0 0;
+  text-align: left;
+}
+.app-shell__logout:hover { color: #fff; }
+
+.app-shell__main { padding: var(--space-5); }
+
+.app-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--space-5);
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.container { max-width: var(--max-content-width); margin: 0 auto; }
+
+// ---------------------------------------------------------------------------
+// Forms
+// ---------------------------------------------------------------------------
+
+.field { margin-bottom: var(--space-4); }
+
+.field label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--color-charcoal-soft);
+  margin-bottom: var(--space-1);
+}
+
+.field-row {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+input[type='text'], input[type='email'], input[type='password'], input[type='number'],
+input[type='date'], input[type='time'], input[type='tel'], textarea, select {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--color-charcoal);
+  background: #fff;
+  border: 1px solid var(--color-rule-strong);
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-3);
+  transition: border-color 0.12s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--color-indigo);
+  box-shadow: 0 0 0 3px rgba(27, 42, 74, 0.1);
+}
+
+input.ng-invalid.ng-touched, textarea.ng-invalid.ng-touched {
+  border-color: var(--color-rejected);
+}
+
+textarea { resize: vertical; min-height: 80px; }
+
+.field__error {
+  font-size: 0.78rem;
+  color: var(--color-rejected);
+  margin-top: var(--space-1);
+}
+
+.field__hint {
+  font-size: 0.78rem;
+  color: var(--color-charcoal-soft);
+  margin-top: var(--space-1);
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.9rem;
+}
+
+.checkbox-row input { width: auto; }
+
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+// ---------------------------------------------------------------------------
+// Buttons
+// ---------------------------------------------------------------------------
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-5);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.12s ease, border-color 0.12s ease, opacity 0.12s ease;
+}
+
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-primary { background: var(--color-indigo); color: #fff; }
+.btn-primary:hover:not(:disabled) { background: var(--color-indigo-700); }
+
+.btn-accent { background: var(--color-marigold); color: var(--color-indigo-900); }
+.btn-accent:hover:not(:disabled) { background: var(--color-marigold-dark); color: #fff; }
+
+.btn-ghost { background: transparent; border-color: var(--color-rule-strong); color: var(--color-indigo); }
+.btn-ghost:hover:not(:disabled) { border-color: var(--color-indigo); }
+
+.btn-text {
+  background: none;
+  border: none;
+  color: var(--color-indigo);
+  padding: var(--space-1) 0;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.btn-block { width: 100%; }
+.btn-sm { padding: var(--space-2) var(--space-3); font-size: 0.82rem; }
+
+.btn-row { display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap; }
+
+// ---------------------------------------------------------------------------
+// Register / ledger panels
+// ---------------------------------------------------------------------------
+
+.panel {
+  background: #fff;
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius);
+}
+
+.panel__header {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-rule);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.panel__body { padding: var(--space-5); }
+
+.rule { border: none; border-top: 1px solid var(--color-rule); margin: var(--space-5) 0; }
+
+// Stat ledger - a row of figures separated by rules, not cards-with-shadows.
+.stat-ledger {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  background: #fff;
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius);
+  margin-bottom: var(--space-6);
+}
+
+.stat-ledger__item {
+  padding: var(--space-4) var(--space-5);
+  border-left: 1px solid var(--color-rule);
+}
+.stat-ledger__item:first-child { border-left: none; }
+
+.stat-ledger__value {
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  font-weight: 600;
+  color: var(--color-indigo);
+  line-height: 1.1;
+}
+
+.stat-ledger__label {
+  font-size: 0.78rem;
+  color: var(--color-charcoal-soft);
+  margin-top: var(--space-1);
+}
+
+// ---------------------------------------------------------------------------
+// Status accents - a left border + text color, not a pill badge.
+// ---------------------------------------------------------------------------
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-3);
+  border-left: 3px solid var(--color-neutral);
+  background: var(--color-neutral-bg);
+  color: var(--color-neutral);
+}
+
+.status--approved, .status--live, .status--completed { border-color: var(--color-approved); background: var(--color-approved-bg); color: var(--color-approved); }
+.status--submitted, .status--under_review, .status--resubmitted { border-color: var(--color-pending); background: var(--color-pending-bg); color: var(--color-pending); }
+.status--changes_requested { border-color: var(--color-marigold-dark); background: var(--color-pending-bg); color: var(--color-marigold-dark); }
+.status--rejected { border-color: var(--color-rejected); background: var(--color-rejected-bg); color: var(--color-rejected); }
+.status--draft { border-color: var(--color-neutral); background: var(--color-neutral-bg); color: var(--color-neutral); }
+
+// ---------------------------------------------------------------------------
+// Ledger table
+// ---------------------------------------------------------------------------
+
+.ledger-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+
+.ledger-table th {
+  text-align: left;
+  font-weight: 500;
+  font-size: 0.76rem;
+  text-transform: none;
+  color: var(--color-charcoal-soft);
+  padding: var(--space-3) var(--space-3);
+  border-bottom: 1px solid var(--color-rule-strong);
+}
+
+.ledger-table td {
+  padding: var(--space-3) var(--space-3);
+  border-bottom: 1px solid var(--color-rule);
+  vertical-align: top;
+}
+
+.ledger-table tbody tr:hover { background: var(--color-paper-raised); }
+
+.ledger-table__no { font-family: var(--font-mono); font-size: 0.82rem; color: var(--color-charcoal-soft); }
+
+.empty-row {
+  text-align: center;
+  padding: var(--space-8) var(--space-4);
+  color: var(--color-charcoal-soft);
+}
+
+// ---------------------------------------------------------------------------
+// Toasts
+// ---------------------------------------------------------------------------
+
+.toast-stack {
+  position: fixed;
+  top: var(--space-4);
+  right: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  z-index: 100;
+  max-width: 320px;
+}
+
+.toast {
+  background: var(--color-indigo);
+  color: #fff;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  border-left: 3px solid var(--color-marigold);
+  font-size: 0.88rem;
+  box-shadow: 0 4px 16px rgba(20, 31, 56, 0.25);
+}
+
+.toast--error { border-left-color: var(--color-rejected); }
+.toast--success { border-left-color: var(--color-approved); }
+
+// ---------------------------------------------------------------------------
+// Small utilities
+// ---------------------------------------------------------------------------
+
+.text-muted { color: var(--color-charcoal-soft); }
+.text-sm { font-size: 0.85rem; }
+.mt-0 { margin-top: 0; }
+.mb-0 { margin-bottom: 0; }
+.flex { display: flex; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.gap-2 { gap: var(--space-2); }
+.gap-3 { gap: var(--space-3); }

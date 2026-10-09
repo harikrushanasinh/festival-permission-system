@@ -9,5 +9,7 @@ export const API_ENDPOINTS = {
   },
   APPLICATIONS: '/applications',
   FESTIVALS: '/festivals',
+  EVENT_TYPES: '/event-types',
   POLICE_STATIONS: '/police-stations',
+  NOTIFICATIONS: '/notifications',
 } as const;

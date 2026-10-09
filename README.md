@@ -336,6 +336,52 @@ See the full 52-module spec in `docs/` for detailed requirements per module.
       second port) served a 200 normally. Testing (an actual automated test suite) and
       production deployment (Docker Compose verification - Docker itself isn't available in
       this sandbox) remain open, tracked separately rather than marked done here.
+- [x] 21. Frontend - organizer workspace (rebuilt a third time after two sandbox data-loss
+      incidents; core infra, login, and a stub dashboard survived both resets, everything
+      else here is new):
+      - **Fixed a real bug found during this rebuild**: `AuthService` assumed a
+        `{success, data}` response envelope the backend has never actually used - every
+        login/register/refresh would have silently read `undefined` off `res.data`. Fixed
+        `AuthResponse`/added `RegisterResponse` to match the backend's real (unwrapped)
+        shape, confirmed by replaying actual `/auth/login` and `/auth/register` responses.
+      - **Design system**: Fraunces (display) + IBM Plex Sans (body), an indigo/marigold/
+        warm-paper palette, and a ledger/register visual language (rule dividers, left-border
+        status accents, numbered entries) instead of rounded SaaS cards - deliberate choices
+        for a civic permit-register product, not the frontend-design skill's generic
+        defaults. Tokens live in `src/styles.scss`; fonts load via `index.html` (Angular's
+        build-time font inlining was disabled in `angular.json` for the production
+        configuration - it tries to fetch fonts.googleapis.com during the build itself,
+        which fails in any network-restricted build environment including this sandbox).
+      - **Register** (`/auth/register`) and **Login** (`/auth/login`), both against the real
+        `/auth/*` endpoints.
+      - **Organizer shell** (`AppShellComponent`): sidebar nav + user info, wraps all
+        `/organizer/*` routes.
+      - **Dashboard**: status counts, upcoming events, and recent notifications - all derived
+        client-side from the real `/applications` and `/notifications` responses (there's no
+        separate dashboard-summary endpoint on the backend).
+      - **Application list** (`/organizer/applications`): filterable by festival/event-type/
+        status, paginated ("load more"), hitting the real `GET /applications` with query
+        params.
+      - **Application form** (`/organizer/applications/new` and `/organizer/applications/:id`):
+        one component serves create, edit, and view/submit, covering F07's event-detail
+        fields (festival, event type, mandal, date/time, crowd, vehicles, sound/DJ/dhol/
+        generator, special requirements). Locked once the application leaves DRAFT/
+        CHANGES_REQUESTED. Submitting correctly surfaces the backend's real validation error
+        when there's no route yet ("build and calculate a route before submitting") rather
+        than faking success - the route builder (F08-F11, Google Maps + PostGIS) is a
+        separate, not-yet-built module.
+      - **Not built yet**: the full 10-step F05 wizard (this is a single-page form covering
+        the event-detail step only), the Google Maps location/route builder, documents
+        upload, the police review workspace, live tracking map, and the public portal.
+
+      Verified against a live Postgres/PostGIS/Redis + real NestJS server, through an actual
+      headless-Chromium browser (Playwright) driving the production Angular build served
+      statically - not just `ng build` succeeding: registered a new organizer, logged in,
+      confirmed the dashboard renders real data, filtered and loaded the application list,
+      created a new application, confirmed it showed as DRAFT, attempted to submit it and
+      confirmed the real backend 400 ("no route yet") surfaced correctly rather than being
+      swallowed, and confirmed the new application appears back in the list. Test user/
+      application rows deleted afterward.
 
 ## Database migrations
 
