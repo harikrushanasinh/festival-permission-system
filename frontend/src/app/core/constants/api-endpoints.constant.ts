@@ -12,4 +12,5 @@ export const API_ENDPOINTS = {
   EVENT_TYPES: '/event-types',
   POLICE_STATIONS: '/police-stations',
   NOTIFICATIONS: '/notifications',
+  ROUTE_VERSIONS: '/route-versions',
 } as const;

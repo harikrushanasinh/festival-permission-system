@@ -28,11 +28,14 @@ const EDITABLE_STATUSES = new Set<ApplicationStatus>([ApplicationStatus.DRAFT, A
       <div class="panel" style="margin-bottom: 1.5rem;">
         <div class="panel__body flex-between">
           <span class="status" [class]="'status--' + app.status.toLowerCase()">{{ app.status }}</span>
-          @if (canSubmit()) {
-            <button type="button" class="btn btn-accent" (click)="submit()" [disabled]="submitting()">
-              {{ submitting() ? 'Submitting…' : 'Submit for police review' }}
-            </button>
-          }
+          <div class="btn-row">
+            <a [routerLink]="['/organizer/applications', applicationId, 'route']" class="btn btn-ghost btn-sm">Route builder</a>
+            @if (canSubmit()) {
+              <button type="button" class="btn btn-accent" (click)="submit()" [disabled]="submitting()">
+                {{ submitting() ? 'Submitting…' : 'Submit for police review' }}
+              </button>
+            }
+          </div>
         </div>
       </div>
     }
@@ -121,10 +124,18 @@ const EDITABLE_STATUSES = new Set<ApplicationStatus>([ApplicationStatus.DRAFT, A
           <textarea id="description" formControlName="description" placeholder="Describe the procession for the record"></textarea>
         </div>
 
-        <p class="field__hint">
-          Start location, destination and the route itself are set up after saving, in the route builder - a
-          follow-up module. Save this as a draft first.
-        </p>
+        @if (applicationId) {
+          <p class="field__hint">
+            Start location, destination and route points are set up in the
+            <a [routerLink]="['/organizer/applications', applicationId, 'route']">route builder</a>.
+            A route with at least one confirmed police station is required before you can submit.
+          </p>
+        } @else {
+          <p class="field__hint">
+            Start location, destination and the route itself are set up after saving, in the route builder.
+            Save this as a draft first.
+          </p>
+        }
 
         <div class="btn-row">
           <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving() || !isEditable()">

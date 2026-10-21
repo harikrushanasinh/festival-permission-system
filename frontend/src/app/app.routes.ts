@@ -27,6 +27,10 @@ export const routes: Routes = [
         path: 'applications/:id',
         loadComponent: () => import('./features/applications/form/application-form.component').then((m) => m.ApplicationFormComponent),
       },
+      {
+        path: 'applications/:id/route',
+        loadComponent: () => import('./features/route-builder/route-builder.component').then((m) => m.RouteBuilderComponent),
+      },
     ],
   },
   { path: '', redirectTo: 'auth/login', pathMatch: 'full' },

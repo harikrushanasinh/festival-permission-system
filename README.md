@@ -373,6 +373,26 @@ See the full 52-module spec in `docs/` for detailed requirements per module.
       - **Not built yet**: the full 10-step F05 wizard (this is a single-page form covering
         the event-detail step only), the Google Maps location/route builder, documents
         upload, the police review workspace, live tracking map, and the public portal.
+- [x] 22. Frontend - route builder (interim, no live Google Maps):
+      - `/organizer/applications/:id/route` (linked from the application page): start,
+        destination, and ordered route points entered as address + latitude/longitude, with
+        add / remove / move-up / move-down, plus "use my current location" for the start
+        (browser Geolocation, no API key needed).
+      - Saving always creates a **new route version** (never edits in place, per F10); the
+        newest version shows a simple schematic of start -> points -> destination.
+      - "Calculate route" calls the real PostGIS endpoint (distance + procession-pace
+        duration); "Analyze route" returns jurisdiction-based police station suggestions
+        with coverage %, a Responsible badge, and per-station Confirm.
+      - Verified end to end in headless Chromium against the live backend with two temporary
+        stations/areas (since removed): register -> draft -> route -> calculate (2.19 km) ->
+        analyze (route split 51/49% across two jurisdictions) -> confirm -> submit =
+        SUBMITTED, zero console/HTTP errors.
+      - **Still blocked on a Google Maps API key**: Places autocomplete, click-to-place
+        markers, drag-to-reorder on a map, and Directions-based road routing. The service
+        layer and backend need no changes when the map picker is added - only this
+        component's input UI.
+      - No police-station / area seed data ships with the repo; an admin (Super Admin UI is
+        not built yet) must load jurisdictions before suggestions return anything useful.
 
       Verified against a live Postgres/PostGIS/Redis + real NestJS server, through an actual
       headless-Chromium browser (Playwright) driving the production Angular build served

@@ -529,3 +529,118 @@ textarea { resize: vertical; min-height: 80px; }
 .flex-between { display: flex; justify-content: space-between; align-items: center; }
 .gap-2 { gap: var(--space-2); }
 .gap-3 { gap: var(--space-3); }
+
+// ---------------------------------------------------------------------------
+// Route builder
+// ---------------------------------------------------------------------------
+
+.waypoint-row {
+  display: grid;
+  grid-template-columns: var(--space-6) 1fr 140px 140px auto;
+  gap: var(--space-3);
+  align-items: end;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-rule);
+}
+
+.waypoint-row:last-child { border-bottom: none; }
+
+.waypoint-row__index {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--color-charcoal-soft);
+  padding-bottom: var(--space-3);
+}
+
+.waypoint-actions { display: flex; gap: var(--space-1); padding-bottom: var(--space-3); }
+
+.icon-btn {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--color-rule-strong);
+  background: #fff;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.85rem;
+  line-height: 1;
+  color: var(--color-indigo);
+}
+
+.icon-btn:hover:not(:disabled) { border-color: var(--color-indigo); }
+.icon-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.route-schematic {
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  padding: var(--space-5) var(--space-2);
+  gap: 0;
+}
+
+.route-schematic__stop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 96px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.route-schematic__dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-indigo);
+  border: 2px solid var(--color-indigo);
+  flex-shrink: 0;
+}
+
+.route-schematic__stop--start .route-schematic__dot,
+.route-schematic__stop--destination .route-schematic__dot {
+  background: var(--color-marigold);
+  border-color: var(--color-marigold-dark);
+  width: 18px;
+  height: 18px;
+}
+
+.route-schematic__label {
+  margin-top: var(--space-2);
+  font-size: 0.78rem;
+  color: var(--color-charcoal-soft);
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.route-schematic__connector {
+  flex: 1;
+  min-width: 32px;
+  height: 2px;
+  background: var(--color-rule-strong);
+  margin-bottom: 22px;
+}
+
+.suggestion-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto auto;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-rule);
+  font-size: 0.9rem;
+}
+
+.suggestion-row:last-child { border-bottom: none; }
+
+.badge-responsible {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--color-live);
+  background: var(--color-live-bg);
+  border: 1px solid var(--color-live);
+  border-radius: var(--radius);
+  padding: 2px 6px;
+  text-transform: uppercase;
+}
