@@ -71,7 +71,7 @@ export class LoginComponent {
         // Only the organizer workspace exists so far (police/admin workspaces are a
         // follow-up module) - every role lands here for now.
         this.notify.success(`Welcome back, ${user.name.split(' ')[0]}.`);
-        this.router.navigate(['/organizer']);
+        this.router.navigate([user.role === 'ORGANIZER' ? '/organizer' : '/police']);
       },
       error: () => this.submitting.set(false),
     });

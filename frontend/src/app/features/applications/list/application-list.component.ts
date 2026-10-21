@@ -7,6 +7,8 @@ import { ApplicationsService } from '../../../core/services/applications.service
 import { MastersService } from '../../../core/services/masters.service';
 import { Application, EventType, Festival } from '../../../core/models/application.model';
 import { ApplicationStatus } from '../../../core/enums/application-status.enum';
+import { AuthService } from '../../../core/services/auth.service';
+import { UserRole } from '../../../core/enums/user-role.enum';
 
 @Component({
   selector: 'app-application-list',
@@ -16,9 +18,11 @@ import { ApplicationStatus } from '../../../core/enums/application-status.enum';
     <div class="app-topbar">
       <div>
         <p class="auth-card__eyebrow mb-0">Register</p>
-        <h1 class="mt-0">Applications</h1>
+        <h1 class="mt-0">{{ isStaff ? 'Review queue' : 'Applications' }}</h1>
       </div>
-      <a routerLink="/organizer/applications/new" class="btn btn-accent">File a new application</a>
+      @if (!isStaff) {
+        <a routerLink="/organizer/applications/new" class="btn btn-accent">File a new application</a>
+      }
     </div>
 
     <form [formGroup]="filters" class="field-row" style="margin-bottom: 1.5rem;">
@@ -68,7 +72,7 @@ import { ApplicationStatus } from '../../../core/enums/application-status.enum';
                 <td>{{ app.startTime }}–{{ app.endTime }}</td>
                 <td>{{ app.expectedCrowd }}</td>
                 <td><span class="status" [class]="'status--' + app.status.toLowerCase()">{{ app.status }}</span></td>
-                <td><a [routerLink]="['/organizer/applications', app.id]" class="btn-text text-sm">View</a></td>
+                <td><a [routerLink]="[basePath, app.id]" class="btn-text text-sm">{{ isStaff ? 'Review' : 'View' }}</a></td>
               </tr>
             }
           </tbody>
@@ -88,7 +92,10 @@ export class ApplicationListComponent {
   private applicationsService = inject(ApplicationsService);
   private mastersService = inject(MastersService);
   private fb = inject(FormBuilder);
+  private auth = inject(AuthService);
 
+  isStaff = this.auth.currentUser()?.role !== UserRole.ORGANIZER;
+  basePath = this.isStaff ? '/police/applications' : '/organizer/applications';
   statuses = Object.values(ApplicationStatus);
   festivals = signal<Festival[]>([]);
   eventTypes = signal<EventType[]>([]);

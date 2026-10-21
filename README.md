@@ -393,6 +393,22 @@ See the full 52-module spec in `docs/` for detailed requirements per module.
         component's input UI.
       - No police-station / area seed data ships with the repo; an admin (Super Admin UI is
         not built yet) must load jurisdictions before suggestions return anything useful.
+- [x] 23. Frontend - police review workspace:
+      - Role-aware shell and login redirect: police/admin roles land on `/police`, organizers
+        on `/organizer`; the application list is shared and switches to a "Review queue".
+      - **Police dashboard**: total / pending review / today's events / approved / rejected /
+        changes requested / live (derived from `/applications`, first 100 - no summary
+        endpoint exists), plus an "Awaiting review" table.
+      - **Application review** (`/police/applications/:id`): event details, route schematic,
+        per-station Approve / Request changes / Reject (reason enforced client-side and by
+        the backend), and route-conflict detection with Allow / Change time / Change route /
+        Reject resolution.
+      - Verified end to end in headless Chromium with two temporary stations (since removed):
+        organizer submits -> police login -> queue -> reject-without-reason blocked ->
+        conflict check -> approve both stations -> application APPROVED and a permit issued,
+        zero console/HTTP errors.
+      - Known gap: the backend lets any police user decide for any station (no
+        officer-to-station assignment yet), so the UI does the same.
 
       Verified against a live Postgres/PostGIS/Redis + real NestJS server, through an actual
       headless-Chromium browser (Playwright) driving the production Angular build served

@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { UserRole } from '../../core/enums/user-role.enum';
 
 @Component({
   selector: 'app-shell',
@@ -11,9 +12,9 @@ import { AuthService } from '../../core/services/auth.service';
       <aside class="app-shell__sidebar">
         <div class="app-shell__mark">Festival Register</div>
         <nav class="app-nav">
-          <a routerLink="/organizer" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a>
-          <a routerLink="/organizer/applications" routerLinkActive="active">Applications</a>
-          <a routerLink="/organizer/applications/new" routerLinkActive="active">New application</a>
+          @for (item of nav; track item.link) {
+            <a [routerLink]="item.link" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: item.exact }">{{ item.label }}</a>
+          }
         </nav>
         <div class="app-shell__user">
           <strong>{{ auth.currentUser()?.name }}</strong>
@@ -32,6 +33,17 @@ import { AuthService } from '../../core/services/auth.service';
 export class AppShellComponent {
   auth = inject(AuthService);
   private router = inject(Router);
+
+  nav = this.auth.currentUser()?.role === UserRole.ORGANIZER
+    ? [
+        { link: '/organizer', label: 'Dashboard', exact: true },
+        { link: '/organizer/applications', label: 'Applications', exact: false },
+        { link: '/organizer/applications/new', label: 'New application', exact: false },
+      ]
+    : [
+        { link: '/police', label: 'Dashboard', exact: true },
+        { link: '/police/applications', label: 'Review queue', exact: false },
+      ];
 
   logout(): void {
     this.auth.logout();
